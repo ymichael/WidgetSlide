@@ -174,7 +174,7 @@ function SlidePuzzle() {
     }
   );
 
-  const emptyTileIdx = tiles.indexOf(8);
+  const emptyTileIdx = tiles ? tiles.indexOf(8) : 0;
   const [emptyRow, emptyCol] = tileIdxToCoords(emptyTileIdx);
 
   return (

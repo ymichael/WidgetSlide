@@ -1,10 +1,27 @@
 // This is a counter widget with buttons to increment and decrement the number.
 
 const { widget } = figma;
-const { AutoLayout, Text, Frame, Image, useSyncedState } = widget;
+const {
+  AutoLayout,
+  Text,
+  Frame,
+  Image,
+  useSyncedState,
+  usePropertyMenu,
+  useEffect,
+} = widget;
 
-const IMG_SRC =
-  "https://static.figma.com/uploads/1de864b6d7a59b5cfeb7ad47537c8316f7341cd2";
+const images = [
+  "https://static.figma.com/uploads/57566c4070341fc6d9a59bee5f419b576925c164",
+  "https://static.figma.com/uploads/01d84f685df407d3691bf6074fa12fc56b73a462",
+  "https://static.figma.com/uploads/93ab4490ab6fdbb3cadf92cb4a1374bce90e5962",
+  "https://static.figma.com/uploads/3f077a24bd6a50b8cd31f6b04c55194d1ff38db9",
+  "https://static.figma.com/uploads/716a9f15e7f24265332e4734e5d4c9e4bfbe3804",
+  "https://static.figma.com/uploads/9b0730e5cfdae0caac5f44ab8dfbc234cd8d8513",
+  "https://static.figma.com/uploads/1c091497e2cc693efdd1032da42881311e92fca8",
+  "https://static.figma.com/uploads/bc696f9be22e946f90fa0c1822ff3d8b23389c17",
+];
+
 const TILE_SIZE = 100;
 const TILE_GAP = 8;
 const IMAGE_SIZE = TILE_SIZE * 3 + TILE_GAP * 2;
@@ -19,7 +36,15 @@ function EmptyTile() {
   );
 }
 
-function SlideTile({ row, col }: { row: number; col: number }) {
+function SlideTile({
+  row,
+  col,
+  imgSrc,
+}: {
+  imgSrc: string;
+  row: number;
+  col: number;
+}) {
   return (
     <AutoLayout stroke="#123456" strokeWidth={1} cornerRadius={10}>
       <Frame width={TILE_SIZE} height={TILE_SIZE}>
@@ -27,7 +52,7 @@ function SlideTile({ row, col }: { row: number; col: number }) {
         <Image
           x={-TILE_SIZE * col - TILE_GAP * col}
           y={-TILE_SIZE * row - TILE_GAP * row}
-          src={IMG_SRC}
+          src={imgSrc}
           width={IMAGE_SIZE}
           height={IMAGE_SIZE}
         />
@@ -84,13 +109,70 @@ const shuffledSolvableInitialStates = [
   [4, 1, 7, 0, 6, 5, 3, 8, 2],
 ];
 
-const randomInitialState =
-  shuffledSolvableInitialStates[
-    Math.floor(shuffledSolvableInitialStates.length * Math.random())
-  ];
+function getRandomElement<T = any>(arr: T[]): T {
+  return arr[Math.floor(arr.length * Math.random())];
+}
+
+const getRandomInitialState = () => {
+  return getRandomElement(shuffledSolvableInitialStates);
+};
+
+const getRandomImage = () => {
+  return getRandomElement(images);
+};
+
+const isSolved = (tiles: number[]): boolean => {
+  for (let i = 0; i < tiles.length - 1; i++) {
+    if (tiles[i] > tiles[i + 1]) {
+      return false;
+    }
+  }
+  return true;
+};
 
 function SlidePuzzle() {
-  const [tiles, setTiles] = useSyncedState("puzzle", randomInitialState);
+  const [tiles, setTiles] = useSyncedState("puzzle", null);
+  const [imgSrc, setImgSrc] = useSyncedState("imgSrc", null);
+  useEffect(() => {
+    if (!imgSrc) {
+      setImgSrc(getRandomImage());
+    }
+    if (!tiles) {
+      setTiles(getRandomInitialState());
+    } else if (isSolved(tiles)) {
+      figma.notify("You solved it!");
+    }
+  });
+  usePropertyMenu(
+    [
+      {
+        itemType: "action",
+        propertyName: "shuffle",
+        tooltip: "Shuffle",
+      },
+      {
+        itemType: "action",
+        propertyName: "image",
+        tooltip: "Change Image",
+      },
+      {
+        itemType: "action",
+        propertyName: "solve",
+        tooltip: "Solve",
+      },
+    ],
+    ({ propertyName }) => {
+      if (propertyName === "shuffle") {
+        setTiles(getRandomInitialState());
+      } else if (propertyName === "image") {
+        setTiles(getRandomInitialState());
+        setImgSrc(getRandomImage());
+      } else if (propertyName === "solve") {
+        const solved = [...tiles].sort();
+        setTiles(solved);
+      }
+    }
+  );
 
   const emptyTileIdx = tiles.indexOf(8);
   const [emptyRow, emptyCol] = tileIdxToCoords(emptyTileIdx);
@@ -119,49 +201,51 @@ function SlidePuzzle() {
             src: "https://static.figma.com/uploads/db163379fd786cb127d6bfd3e0a77fe422721147",
           }}
         />
-        <AutoLayout
-          x={25}
-          y={75}
-          direction="vertical"
-          cornerRadius={15}
-          spacing={10}
-          padding={10}
-        >
-          {[0, 1, 2].map((row) => {
-            return (
-              <AutoLayout direction="horizontal" spacing={10} key={row}>
-                {[0, 1, 2].map((col) => {
-                  const idx = coordsToIdx(row, col);
-                  const remappedIdx = tiles[idx];
-                  if (remappedIdx === 8) {
-                    return <EmptyTile key={remappedIdx} />;
-                  }
-                  const [x, y] = tileIdxToCoords(remappedIdx);
-                  const isMovable =
-                    (col === emptyCol &&
-                      (row === emptyRow - 1 || row === emptyRow + 1)) ||
-                    (row === emptyRow &&
-                      (col === emptyCol - 1 || col === emptyCol + 1));
-                  const additionalProps = isMovable
-                    ? {
-                        onClick: () => {
-                          const newTiles = [...tiles];
-                          newTiles[emptyTileIdx] = remappedIdx;
-                          newTiles[idx] = 8;
-                          setTiles(newTiles);
-                        },
-                      }
-                    : {};
-                  return (
-                    <AutoLayout key={remappedIdx} {...additionalProps}>
-                      <SlideTile row={x} col={y} />
-                    </AutoLayout>
-                  );
-                })}
-              </AutoLayout>
-            );
-          })}
-        </AutoLayout>
+        {tiles && imgSrc && (
+          <AutoLayout
+            x={25}
+            y={75}
+            direction="vertical"
+            cornerRadius={15}
+            spacing={10}
+            padding={10}
+          >
+            {[0, 1, 2].map((row) => {
+              return (
+                <AutoLayout direction="horizontal" spacing={10} key={row}>
+                  {[0, 1, 2].map((col) => {
+                    const idx = coordsToIdx(row, col);
+                    const remappedIdx = tiles[idx];
+                    if (remappedIdx === 8) {
+                      return <EmptyTile key={remappedIdx} />;
+                    }
+                    const [x, y] = tileIdxToCoords(remappedIdx);
+                    const isMovable =
+                      (col === emptyCol &&
+                        (row === emptyRow - 1 || row === emptyRow + 1)) ||
+                      (row === emptyRow &&
+                        (col === emptyCol - 1 || col === emptyCol + 1));
+                    const additionalProps = isMovable
+                      ? {
+                          onClick: () => {
+                            const newTiles = [...tiles];
+                            newTiles[emptyTileIdx] = remappedIdx;
+                            newTiles[idx] = 8;
+                            setTiles(newTiles);
+                          },
+                        }
+                      : {};
+                    return (
+                      <AutoLayout key={remappedIdx} {...additionalProps}>
+                        <SlideTile imgSrc={imgSrc} row={x} col={y} />
+                      </AutoLayout>
+                    );
+                  })}
+                </AutoLayout>
+              );
+            })}
+          </AutoLayout>
+        )}
       </Frame>
     </AutoLayout>
   );

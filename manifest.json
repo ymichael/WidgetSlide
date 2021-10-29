@@ -1,0 +1,11 @@
+{
+  "name": "Slide Puzzle",
+  "id": "1033159891195901603",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": [
+    "figjam"
+  ],
+  "containsWidget": true,
+  "widgetApi": "1.0.0"
+}

@@ -1,7 +1,7 @@
 {
   "name": "WidgetSlide",
   "version": "1.0.0",
-  "description": "Your Figma widget",
+  "description": "A slide puzzle figjam widget",
   "main": "code.js",
   "scripts": {
     "build": "tsc -p tsconfig.json"

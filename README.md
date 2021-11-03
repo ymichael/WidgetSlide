@@ -1,6 +1,8 @@
 # Slide Puzzle FigJam Widget
 
-Install and use this widget here: TODO
+![](https://www.figma.com/community/widget/1036053753307076841/thumbnail)
+
+Install and use this widget here: https://www.figma.com/community/widget/1036053753307076841
 
 ## Getting Started
 

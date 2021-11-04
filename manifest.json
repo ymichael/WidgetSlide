@@ -1,6 +1,6 @@
 {
   "name": "Slide Puzzle",
-  "id": "1033159891195901603",
+  "id": "slide-puzzle",
   "api": "1.0.0",
   "main": "code.js",
   "editorType": [

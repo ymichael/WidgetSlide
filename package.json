@@ -4,7 +4,8 @@
   "description": "A slide puzzle figjam widget",
   "main": "code.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "author": "",
   "license": "",
